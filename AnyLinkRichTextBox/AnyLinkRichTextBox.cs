@@ -90,7 +90,6 @@ namespace AnyLinkRichTextBox
         /// </summary>
         private static Regex customLinks = new Regex(
             @"\[.*\S.*\]\(.*\S.*\)",
-            //spliters[0] + @".*\S.*" + spliters[1] + spliters[2] + @".*\S.*" + spliters[3],
             RegexOptions.IgnoreCase |
             RegexOptions.CultureInvariant |
             RegexOptions.Compiled);
@@ -132,50 +131,32 @@ namespace AnyLinkRichTextBox
         #region Variables
         private Dictionary<KeyValuePair<int, int>, string> hyperlinks = new Dictionary<KeyValuePair<int, int>, string>();
         private Point pt;
-        private static char[] spliters = new char[] { '[', ']', '(', ')' };
+        private char[] spliters;
         private int OldLength;        
         #endregion
 
         #region Constructor
         public AnyLinkRichTextBox()
-		{
-			// Otherwise, non-standard links get lost when user starts typing
-			// next to a non-standard link
+        {
+            // Otherwise, non-standard links get lost when user starts typing
+            // next to a non-standard link
             base.DetectUrls = false;
-			this.DetectUrls = true;
+            this.DetectUrls = true;
+            spliters = new char[] { '[', ']', '(', ')' };
             this.LinkClicked += RTBExCustomLinks_LinkClicked;
             this.TextChanged += RTBExCustomLinks_TextChanged;
-            this.MouseMove +=RTBExCustomLinks_MouseMove;
-            this.Protected +=RTBExCustomLinks_Protected;
-		}       
+            this.MouseMove += RTBExCustomLinks_MouseMove;
+            this.Protected += RTBExCustomLinks_Protected;
+        }
         #endregion
 
         #region Properties
-        /// <summary>
-        /// That property specifies the delimiters of custom links.
-        /// The default value is Markdown style.
-        /// </summary>
-        [Browsable(true),
-        Category("RichTextBox Custom Links"),
-        DefaultValue(new char[] { '[', ']', '(', ')' })]
-        public char[] DelimitersForCustomLink
-        {
-            get
-            {
-                return spliters;
-            }
-            set
-            {
-                spliters = value;
-            }
-        }
-
         /// <summary>
         /// That property overrides base.DetectUrls
         /// </summary>
         [Browsable(true),
         DefaultValue(false)]
-        public new bool DetectUrls { get { return this.DetectUrls; } set { this.DetectUrls = value; } }
+        public new bool DetectUrls { get; set; }
         #endregion
 
         #region Events
