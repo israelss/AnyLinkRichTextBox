@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -201,15 +202,15 @@ namespace AnyLinkRichTextBox
             {
                 if (normalLinks.IsMatch(e.LinkText))
                 {
-                    MessageBox.Show("A link has been clicked.\nThe link is '" + e.LinkText + "'");
+                    Process.Start(e.LinkText);
                 }
                 else if (mailLinks.IsMatch(e.LinkText))
                 {
-                    MessageBox.Show("A link has been clicked.\nThe link is 'mailto:" + e.LinkText + "'");
+                    Process.Start("mailto:" + e.LinkText);
                 }
                 else if (IPLinks.IsMatch(e.LinkText))
                 {
-                    MessageBox.Show("A link has been clicked.\nThe link is '" + e.LinkText + "'");
+                    Process.Start(e.LinkText);
                 }
                 else
                 {
@@ -219,7 +220,7 @@ namespace AnyLinkRichTextBox
                         var linkClicked = hyperlinks.Where(k => IsInRange(mouseClick, k.Key.Key, k.Key.Value));
                         string hyperlinkClicked = linkClicked.Select(k => k.Value).ToList().First();
                         this.SelectionStart = linkClicked.Select(k => k.Key.Key).First() + linkClicked.Select(k => k.Key.Value).First();
-                        MessageBox.Show("A link has been clicked.\nThe link is '" + hyperlinkClicked + "'");
+                        Process.Start(hyperlinkClicked);
                     }
                     catch (Exception)
                     {
