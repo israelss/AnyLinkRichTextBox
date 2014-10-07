@@ -63,11 +63,19 @@ namespace AnyLinkRichTextBox
         private const int FALSE = 0;
         private const int TRUE = 1;
 
+        /// <summary>
+        /// That method is used to pause the drawing of the rich text box, so the user doesn't see
+        /// any flickering nor the process of parsing the text looking for links
+        /// </summary>
         private void SuspendDrawing()
         {
             SendMessage(this.Handle, WM_SETREDRAW, FALSE, 0);
         }
 
+        /// <summary>
+        /// That method is used to resume the drawing, so the user can see any modification
+        /// on the text, as a result of the process of parsing the text looking for links
+        /// </summary>
         private void ResumeDrawing()
         {
             SendMessage(this.Handle, WM_SETREDRAW, TRUE, 0);
@@ -76,24 +84,43 @@ namespace AnyLinkRichTextBox
         #endregion
 
         #region Regex
+        /// <summary>
+        /// This Regex is used for parse the text and search for any custom link in the Markdown style,
+        /// in the form '[Friendly Text](Hyperlink Text)'
+        /// </summary>
         private static Regex customLinks = new Regex(
-            @"\[.*\S.*\]\(.*\S.*\)",
+            spliters[0] + @".*\S.*" + spliters[1] + spliters[2] + @".*\S.*" + spliters[3],
             RegexOptions.IgnoreCase |
             RegexOptions.CultureInvariant |
             RegexOptions.Compiled);
 
+        /// <summary>
+        /// This Regex is used for parse the text and search for any normal link,
+        /// by normal, I mean any link which starts with any protocol (http://|https://|etc...)
+        /// or without protocol, but starting with 'www.' (www.example.com)
+        /// </summary>
         private static Regex normalLinks = new Regex(
             @"(?<Protocol>\w+):\/\/(?<Domain>[\w@][\w.:@]+)\/?[\w\.?=%&=\-@/$,]*|(?<Domain>w{3}\.[\w@][\w.:@]+)\/?[\w\.?=%&=\-@/$,]*",
             RegexOptions.IgnoreCase |
             RegexOptions.CultureInvariant |
             RegexOptions.Compiled);
 
+        /// <summary>
+        /// This Regex is used for parse the text and search for any IP like link,
+        /// for example '255.255.255.255'
+        /// </summary>
         private static Regex IPLinks = new Regex(
             @"(?<First>2[0-4]\d|25[0-5]|[01]?\d\d?)\.(?<Second>2[0-4]\d|25[0-5]|[01]?\d\d?)\.(?<Third>2[0-4]\d|25[0-5]|[01]?\d\d?)\.(?<Fourth>2[0-4]\d|25[0-5]|[01]?\d\d?)",
             RegexOptions.IgnoreCase |
             RegexOptions.CultureInvariant |
             RegexOptions.Compiled);
 
+        /// <summary>
+        /// This Regex is used for parse the text and search for any mail like link,
+        /// for example 'user@company.com'.
+        /// The mail links which starts with the protocol 'mailto:' are identified
+        /// with the Regex normalLinks
+        /// </summary>
         private static Regex mailLinks = new Regex(
             @"([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})",
             RegexOptions.IgnoreCase |
@@ -104,7 +131,7 @@ namespace AnyLinkRichTextBox
         #region Variables
         private Dictionary<KeyValuePair<int, int>, string> hyperlinks = new Dictionary<KeyValuePair<int, int>, string>();
         private Point pt;
-        private char[] spliters = new char[] { '[', ']', '(', ')' };
+        private static char[] spliters = new char[] { '[', ']', '(', ')' };
         private int OldLength;        
         #endregion
 
@@ -123,17 +150,40 @@ namespace AnyLinkRichTextBox
         #endregion
 
         #region Properties
+        /// <summary>
+        /// That property specifies the delimiters of custom links.
+        /// The default value is Markdown style.
+        /// </summary>
         [Browsable(true),
         Category("RichTextBox Custom Links"),
         DefaultValue(new char[] { '[', ']', '(', ')' })]
-        public char[] DelimitersForCustomLink { get; set; }
+        public char[] DelimitersForCustomLink
+        {
+            get
+            {
+                return spliters;
+            }
+            set
+            {
+                spliters = value;
+            }
+        }
 
+        /// <summary>
+        /// That property overrides base.DetectUrls
+        /// </summary>
         [Browsable(true),
         DefaultValue(false)]
         public new bool DetectUrls { get { return this.DetectUrls; } set { this.DetectUrls = value; } }
         #endregion
 
         #region Events
+        /// <summary>
+        /// This event occurs when the user tries to modify any protected text.
+        /// So it is used to verify when the user want to modify a custom link,
+        /// </summary>
+        /// <param name="sender">The sender object</param>
+        /// <param name="e">The args of event</param>
         private void RTBExCustomLinks_Protected(object sender, EventArgs e)
         {
             if (DetectUrls)
@@ -168,11 +218,25 @@ namespace AnyLinkRichTextBox
             }
         }
 
+        /// <summary>
+        /// This event occurs whenever the mouse move in the control area,
+        /// so it is used to know where the user clicked and later calculate
+        /// the index of caret at that position
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void RTBExCustomLinks_MouseMove(object sender, MouseEventArgs e)
         {
             pt = e.Location;
         }
 
+        /// <summary>
+        /// This event occurs whenever the rich text box text is changed,
+        /// so it is used to start the parsing of text, to search for any changes
+        /// in links, adding or removing
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void RTBExCustomLinks_TextChanged(object sender, EventArgs e)
         {
             if (DetectUrls)
@@ -196,6 +260,13 @@ namespace AnyLinkRichTextBox
             }
         }
 
+        /// <summary>
+        /// This event occurs whenever the user clicks a link,
+        /// so it is used to process the link according to the type
+        /// (normal, IP, mail or custom link)
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void RTBExCustomLinks_LinkClicked(object sender, LinkClickedEventArgs e)
         {
             if (DetectUrls)
@@ -232,6 +303,8 @@ namespace AnyLinkRichTextBox
         #endregion
 
         #region TextChanged Methods
+        //These are the methods used for parsing the text.
+        //They are fired in that order:
         private int CheckCustomLinks(int pos)
         {
             if (customLinks.Matches(this.Text).Cast<Match>().Any())
@@ -368,10 +441,17 @@ namespace AnyLinkRichTextBox
         #endregion
 
         #region Misc
-        private bool IsInRange(int number, int start, int lenght)
+        /// <summary>
+        /// This method is used to know which link the user has clicked
+        /// </summary>
+        /// <param name="mouseClick">The caret index at the position where the user has clicked</param>
+        /// <param name="start">The start index of link</param>
+        /// <param name="length">The length of link</param>
+        /// <returns>Returns true if the user has clicked that link, false otherwise</returns>
+        private bool IsInRange(int mouseClick, int start, int length)
         {
-            int end = start + lenght;
-            if (number >= start && number <= end) return true;
+            int end = start + length;
+            if (mouseClick >= start && mouseClick <= end) return true;
             else return false;
         }
 
