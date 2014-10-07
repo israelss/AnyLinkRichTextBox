@@ -263,7 +263,7 @@ namespace AnyLinkRichTextBox
                 }
                 else if (IPLinks.IsMatch(e.LinkText))
                 {
-                    Process.Start(e.LinkText);
+                    Process.Start("http://" + e.LinkText);
                 }
                 else
                 {
