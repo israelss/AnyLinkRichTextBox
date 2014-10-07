@@ -89,7 +89,8 @@ namespace AnyLinkRichTextBox
         /// in the form '[Friendly Text](Hyperlink Text)'
         /// </summary>
         private static Regex customLinks = new Regex(
-            spliters[0] + @".*\S.*" + spliters[1] + spliters[2] + @".*\S.*" + spliters[3],
+            @"\[.*\S.*\]\(.*\S.*\)",
+            //spliters[0] + @".*\S.*" + spliters[1] + spliters[2] + @".*\S.*" + spliters[3],
             RegexOptions.IgnoreCase |
             RegexOptions.CultureInvariant |
             RegexOptions.Compiled);
