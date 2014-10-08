@@ -259,7 +259,14 @@ namespace AnyLinkRichTextBox
                 }
                 else if (mailLinks.IsMatch(e.LinkText))
                 {
-                    Process.Start("mailto:" + e.LinkText);
+                    if (e.LinkText.StartsWith("mailto:"))
+                    {
+                        Process.Start(e.LinkText);
+                    }
+                    else
+                    {
+                        Process.Start("mailto:" + e.LinkText);
+                    }
                 }
                 else if (IPLinks.IsMatch(e.LinkText))
                 {
