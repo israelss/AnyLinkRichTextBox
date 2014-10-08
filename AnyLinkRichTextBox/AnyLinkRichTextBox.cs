@@ -279,7 +279,6 @@ namespace AnyLinkRichTextBox
                     {
                         var linkClicked = hyperlinks.Where(k => IsInRange(mouseClick, k.Key.Key, k.Key.Value));
                         string hyperlinkClicked = linkClicked.Select(k => k.Value).ToList().First();
-                        this.SelectionStart = linkClicked.Select(k => k.Key.Key).First() + linkClicked.Select(k => k.Key.Value).First();
                         Process.Start(hyperlinkClicked);
                     }
                     catch (Exception)
